@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:fluttershare/widgets/header.dart';
 
@@ -7,18 +9,34 @@ class CreateAccount extends StatefulWidget {
 }
 
 class _CreateAccountState extends State<CreateAccount> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _formKey = GlobalKey<FormState>();
   String username;
 
   submit() {
-    _formKey.currentState.save();
-    Navigator.pop(context, username);
+    final form = _formKey.currentState;
+
+    if (form.validate()) {
+      form.save();
+
+      SnackBar snackBar = SnackBar(
+        content: Text("Welcome, $username!"),
+        duration: Duration(seconds: 1),
+      );
+      _scaffoldKey.currentState.showSnackBar(snackBar);
+
+      Timer(Duration(seconds: 2), () {
+        Navigator.pop(context, username);
+      });
+    }
   }
 
   @override
   Scaffold build(BuildContext parentContext) {
     return Scaffold(
-      appBar: header(context, titleText: "Create Account"),
+      key: _scaffoldKey,
+      appBar:
+          header(context, titleText: "Create Account", removeBackButton: true),
       body: ListView(
         children: <Widget>[
           Container(
@@ -37,12 +55,23 @@ class _CreateAccountState extends State<CreateAccount> {
                     child: Form(
                       key: _formKey,
                       child: TextFormField(
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                        validator: (value) {
+                          if (value.trim().length < 3 || value.isEmpty) {
+                            return "Please enter at least 3 characters";
+                          } else if (value.trim().length > 12) {
+                            return "Username must be less than 12 characters";
+                          } else {
+                            return null;
+                          }
+                        },
                         onSaved: (newValue) => username = newValue,
                         decoration: InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: "Username",
-                            labelStyle: TextStyle(fontSize: 15.0),
-                            hintText: "Must be at least 3 characters"),
+                          border: OutlineInputBorder(),
+                          labelText: "Username",
+                          labelStyle: TextStyle(fontSize: 15.0),
+                          hintText: "Must be at least 3 characters",
+                        ),
                       ),
                     ),
                   ),
