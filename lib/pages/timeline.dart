@@ -10,7 +10,7 @@ class _TimelineState extends State<Timeline> {
   @override
   Scaffold build(context) {
     return Scaffold(
-      appBar: header(context, isAppTitle: true),
+      appBar: header(context, isAppTitle: true, removeBackButton: true),
       body: Text("Timeline"),
     );
   }
