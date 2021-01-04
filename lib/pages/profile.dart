@@ -6,6 +6,7 @@ import 'package:fluttershare/models/user.dart';
 import 'package:fluttershare/pages/edit_profile.dart';
 import 'package:fluttershare/widgets/header.dart';
 import 'package:fluttershare/pages/home.dart';
+import 'package:fluttershare/widgets/post_tile.dart';
 import 'package:fluttershare/widgets/progress.dart';
 
 class Profile extends StatefulWidget {
@@ -187,6 +188,22 @@ class _ProfileState extends State<Profile> {
     if (isLoading) {
       return circularProgress(context);
     }
+
+    List<GridTile> gridTiles = [];
+
+    posts.forEach((post) {
+      gridTiles.add(GridTile(child: PostTile(post)));
+    });
+
+    return GridView.count(
+      crossAxisCount: 3,
+      childAspectRatio: 1.0,
+      mainAxisSpacing: 1.5,
+      crossAxisSpacing: 1.5,
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      children: gridTiles,
+    );
 
     return Column(
       children: posts,

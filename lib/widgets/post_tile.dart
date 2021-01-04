@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:fluttershare/widgets/custom_image.dart';
+import 'package:fluttershare/widgets/post_state.dart';
 
 class PostTile extends StatelessWidget {
+  final Post post;
+
+  PostTile(this.post);
+
   @override
   Widget build(BuildContext context) {
-    return Text("Post Tile");
+    return GestureDetector(
+      onTap: () => print('clik on post'),
+      child: cachedNetworkImage(post.mediaUrl),
+    );
   }
 }
