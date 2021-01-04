@@ -8,13 +8,14 @@ class User {
   final String displayName;
   final String bio;
 
-  User(
-      {this.id,
-      this.username,
-      this.email,
-      this.bio,
-      this.displayName,
-      this.photoUrl});
+  User({
+    this.id,
+    this.username,
+    this.email,
+    this.bio,
+    this.displayName,
+    this.photoUrl,
+  });
 
   factory User.fromDocument(DocumentSnapshot doc) {
     return User(
