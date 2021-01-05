@@ -20,9 +20,10 @@ class Profile extends StatefulWidget {
 
 class _ProfileState extends State<Profile> {
   final String currUserId = currUser?.id;
+  String postView = "grid";
   int postCount = 0;
-  bool isLoading = false;
   List<Post> posts = [];
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -187,26 +188,72 @@ class _ProfileState extends State<Profile> {
   buildProfilePosts() {
     if (isLoading) {
       return circularProgress(context);
+    } else if (posts.isEmpty) {
+      return Container(
+        padding: EdgeInsets.all(40.0),
+        child: Column(
+          children: [
+            Padding(
+              padding: EdgeInsets.all(40.0),
+              child: Text(
+                "No Posts",
+                style: TextStyle(
+                  fontSize: 40.0,
+                  color: Colors.grey,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else if (postView == 'grid') {
+      List<GridTile> gridTiles = [];
+
+      posts.forEach((post) {
+        gridTiles.add(GridTile(child: PostTile(post)));
+      });
+
+      return GridView.count(
+        crossAxisCount: 3,
+        childAspectRatio: 1.0,
+        mainAxisSpacing: 1.5,
+        crossAxisSpacing: 1.5,
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
+        children: gridTiles,
+      );
+    } else if (postView == 'list') {
+      return Column(
+        children: posts,
+      );
     }
+  }
 
-    List<GridTile> gridTiles = [];
+  togglePostView(String postView) {
+    if (this.postView == postView) return;
 
-    posts.forEach((post) {
-      gridTiles.add(GridTile(child: PostTile(post)));
+    setState(() {
+      this.postView = postView;
     });
+  }
 
-    return GridView.count(
-      crossAxisCount: 3,
-      childAspectRatio: 1.0,
-      mainAxisSpacing: 1.5,
-      crossAxisSpacing: 1.5,
-      shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      children: gridTiles,
-    );
-
-    return Column(
-      children: posts,
+  buildTogglePostsView() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        IconButton(
+          icon: Icon(Icons.grid_on),
+          color:
+              postView == 'grid' ? Theme.of(context).primaryColor : Colors.grey,
+          onPressed: () => togglePostView('grid'),
+        ),
+        IconButton(
+          icon: Icon(Icons.list),
+          color:
+              postView == 'list' ? Theme.of(context).primaryColor : Colors.grey,
+          onPressed: () => togglePostView('list'),
+        ),
+      ],
     );
   }
 
@@ -217,6 +264,8 @@ class _ProfileState extends State<Profile> {
       body: ListView(
         children: [
           buildProfileHeader(),
+          Divider(),
+          buildTogglePostsView(),
           Divider(
             height: 0.0,
           ),
