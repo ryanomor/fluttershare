@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttershare/models/user.dart';
+import 'package:fluttershare/pages/comments.dart';
 import 'package:fluttershare/pages/home.dart';
 import 'package:fluttershare/widgets/custom_image.dart';
 import 'package:fluttershare/widgets/progress.dart';
@@ -140,7 +141,8 @@ class _PostState extends State<Post> {
           .document(ownerId)
           .collection('usersPosts')
           .document(postId)
-          .updateData({'likes': likes});
+          .updateData({'likes.$currentUserId': true});
+      // .updateData({'likes': likes}); // this also works
 
       setState(() {
         isLiked = true;
@@ -155,6 +157,24 @@ class _PostState extends State<Post> {
         });
       });
     }
+  }
+
+  showComments(
+    BuildContext context, {
+    String postId,
+    String ownerId,
+    String mediaUrl,
+  }) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Comments(
+          postId: postId,
+          postOwnerId: ownerId,
+          postMediaUrl: mediaUrl,
+        ),
+      ),
+    );
   }
 
   buildPostImage() {
@@ -206,7 +226,12 @@ class _PostState extends State<Post> {
               padding: EdgeInsets.only(right: 20.0),
             ),
             GestureDetector(
-              onTap: () => print('show comments'),
+              onTap: () => showComments(
+                context,
+                postId: postId,
+                ownerId: ownerId,
+                mediaUrl: mediaUrl,
+              ),
               child: Icon(
                 Icons.chat,
                 size: 28.0,
