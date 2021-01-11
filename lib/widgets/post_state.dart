@@ -130,6 +130,8 @@ class _PostState extends State<Post> {
           .document(postId)
           .updateData({'likes.$currentUserId': FieldValue.delete()});
 
+      removeLikeFromActivityFeed();
+
       setState(() {
         isLiked = false;
         likeCount = likes.isEmpty ? 0 : likes.length;
@@ -144,6 +146,8 @@ class _PostState extends State<Post> {
           .updateData({'likes.$currentUserId': true});
       // .updateData({'likes': likes}); // this also works
 
+      addLikeToActivityFeed();
+
       setState(() {
         isLiked = true;
         showHeart = true;
@@ -155,6 +159,40 @@ class _PostState extends State<Post> {
         setState(() {
           showHeart = false;
         });
+      });
+    }
+  }
+
+  addLikeToActivityFeed() {
+    // Send notification only if the currUsr is not post's owner
+    if (currentUserId != ownerId) {
+      activityFeedRef
+          .document(ownerId)
+          .collection("feedItems")
+          .document(postId)
+          .setData({
+        "type": "like",
+        "userId": currUser.id,
+        "username": currUser.username,
+        "userAvatarUrl": currUser.photoUrl,
+        "postId": postId,
+        "mediaUrl": mediaUrl,
+        "timestamp": DateTime.now(),
+      });
+    }
+  }
+
+  removeLikeFromActivityFeed() {
+    // Send notification only if the currUsr is not post's owner
+    if (currentUserId != ownerId) {
+      activityFeedRef
+          .document(ownerId)
+          .collection("feedItems")
+          .document(postId)
+          // use get method to make sure document exists before attempting to delete
+          .get()
+          .then((doc) {
+        if (doc.exists) doc.reference.delete();
       });
     }
   }

@@ -8,6 +8,18 @@ AppBar header(
 }) {
   return AppBar(
     automaticallyImplyLeading: removeBackButton ? false : true,
+    leading: removeBackButton
+        ? null
+        : Builder(
+            builder: (BuildContext context) {
+              return IconButton(
+                icon: const Icon(Icons.arrow_back_ios),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              );
+            },
+          ),
     title: Text(
       isAppTitle ? "Fluttershare" : titleText,
       style: TextStyle(
