@@ -70,6 +70,20 @@ class CommentsState extends State<Comments> {
       "timestamp": DateTime.now(),
     });
 
+    // Send notification only if the currUsr is not post's owner
+    if (currUser.id != postOwnerId) {
+      activityFeedRef.document(postOwnerId).collection("feedItems").add({
+        "type": "comment",
+        "postId": postId,
+        "userId": currUser.id,
+        "username": currUser.username,
+        "userAvatarUrl": currUser.photoUrl,
+        "commentData": commentController.text,
+        "mediaUrl": postMediaUrl,
+        "timestamp": DateTime.now(),
+      });
+    }
+
     commentController.clear();
   }
 
