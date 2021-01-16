@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttershare/models/user.dart';
 import 'package:fluttershare/pages/comments.dart';
 import 'package:fluttershare/pages/home.dart';
+import 'package:fluttershare/pages/profile.dart';
 import 'package:fluttershare/widgets/custom_image.dart';
 import 'package:fluttershare/widgets/progress.dart';
 
@@ -100,7 +101,7 @@ class _PostState extends State<Post> {
             backgroundColor: Colors.grey,
           ),
           title: GestureDetector(
-            onTap: () => print('show profile'),
+            onTap: () => navigateToProfile(context, profileId: user.id),
             child: Text(
               user.username,
               style:

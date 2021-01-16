@@ -11,8 +11,9 @@ import 'package:fluttershare/widgets/progress.dart';
 
 class Profile extends StatefulWidget {
   final String profileId;
+  final bool removeBackButton;
 
-  Profile({this.profileId});
+  Profile({this.profileId, this.removeBackButton = true});
 
   @override
   _ProfileState createState() => _ProfileState();
@@ -75,11 +76,13 @@ class _ProfileState extends State<Profile> {
 
   editProfile() {
     Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => EditProfile(
-                  currentUserId: currUserId,
-                )));
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditProfile(
+          currentUserId: currUserId,
+        ),
+      ),
+    );
   }
 
   FlatButton buildButton({String text, Function function}) {
@@ -260,7 +263,11 @@ class _ProfileState extends State<Profile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: header(context, titleText: "Profile", removeBackButton: true),
+      appBar: header(
+        context,
+        titleText: "Profile",
+        removeBackButton: widget.removeBackButton,
+      ),
       body: ListView(
         children: [
           buildProfileHeader(),
@@ -274,4 +281,16 @@ class _ProfileState extends State<Profile> {
       ),
     );
   }
+}
+
+navigateToProfile(BuildContext context, {String profileId}) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => Profile(
+        profileId: profileId,
+        removeBackButton: false,
+      ),
+    ),
+  );
 }

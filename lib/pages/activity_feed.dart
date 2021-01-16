@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttershare/pages/home.dart';
+import 'package:fluttershare/pages/post_screen.dart';
 import 'package:fluttershare/widgets/header.dart';
 import 'package:fluttershare/widgets/progress.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -44,7 +45,7 @@ class _ActivityFeedState extends State<ActivityFeed> {
       backgroundColor: Colors.grey[300],
       body: Container(
         child: FutureBuilder(
-          future: getActivityFeed(),
+          future: notifications,
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
               return circularProgress(context);
@@ -94,21 +95,30 @@ class ActivityFeedItem extends StatelessWidget {
     );
   }
 
-  configureMediaPreview() {
+  navigateToPost(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PostScreen(
+          postId: postId,
+          userId: userId,
+        ),
+      ),
+    );
+  }
+
+  configureMediaPreview(BuildContext context) {
     if (type == 'like' || type == 'comment') {
-      mediaPreview = GestureDetector(
-        onTap: () => print('show post'),
-        child: Container(
-          height: 50.0,
-          width: 50.0,
-          child: AspectRatio(
-            aspectRatio: 16 / 9,
-            child: Container(
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: CachedNetworkImageProvider(mediaUrl),
-                  fit: BoxFit.cover,
-                ),
+      mediaPreview = Container(
+        height: 50.0,
+        width: 50.0,
+        child: AspectRatio(
+          aspectRatio: 16 / 9,
+          child: Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: CachedNetworkImageProvider(mediaUrl),
+                fit: BoxFit.cover,
               ),
             ),
           ),
@@ -145,15 +155,18 @@ class ActivityFeedItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    configureMediaPreview();
+    configureMediaPreview(context);
 
     return Padding(
       padding: EdgeInsets.only(bottom: 2.0),
       child: Container(
         color: Colors.white54,
         child: ListTile(
+          leading: CircleAvatar(
+            backgroundImage: CachedNetworkImageProvider(avatarUrl),
+          ),
           title: GestureDetector(
-            onTap: () => print('go to activity context'),
+            onTap: () => navigateToPost(context),
             child: RichText(
               overflow: TextOverflow.ellipsis,
               text: TextSpan(
@@ -169,9 +182,6 @@ class ActivityFeedItem extends StatelessWidget {
                 ],
               ),
             ),
-          ),
-          leading: CircleAvatar(
-            backgroundImage: CachedNetworkImageProvider(avatarUrl),
           ),
           subtitle: Text(
             timeago.format(timestamp.toDate()),
