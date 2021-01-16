@@ -13,7 +13,10 @@ AppBar header(
         : Builder(
             builder: (BuildContext context) {
               return IconButton(
-                icon: const Icon(Icons.arrow_back_ios),
+                icon: const Icon(
+                  Icons.arrow_back_ios_rounded,
+                  color: Colors.white,
+                ),
                 onPressed: () {
                   Navigator.pop(context);
                 },
@@ -27,6 +30,7 @@ AppBar header(
         fontFamily: isAppTitle ? "Signatra" : "",
         fontSize: isAppTitle ? 50.0 : 25.0,
       ),
+      overflow: TextOverflow.ellipsis,
     ),
     centerTitle: true,
     backgroundColor: Theme.of(context).primaryColor,
