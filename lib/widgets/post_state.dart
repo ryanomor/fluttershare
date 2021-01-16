@@ -174,7 +174,7 @@ class _PostState extends State<Post> {
         "type": "like",
         "userId": currUser.id,
         "username": currUser.username,
-        "userAvatarUrl": currUser.photoUrl,
+        "avatarUrl": currUser.photoUrl,
         "postId": postId,
         "mediaUrl": mediaUrl,
         "timestamp": DateTime.now(),
@@ -306,7 +306,10 @@ class _PostState extends State<Post> {
               ),
             ),
             Expanded(
-              child: Text(description),
+              child: Text(
+                description,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
