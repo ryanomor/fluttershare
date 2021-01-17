@@ -7,6 +7,8 @@ class User {
   final String photoUrl;
   final String displayName;
   final String bio;
+  final Set followers;
+  final Set following;
 
   User({
     this.id,
@@ -15,6 +17,8 @@ class User {
     this.bio,
     this.displayName,
     this.photoUrl,
+    this.followers,
+    this.following,
   });
 
   factory User.fromDocument(DocumentSnapshot doc) {
@@ -25,6 +29,8 @@ class User {
       bio: doc["bio"],
       displayName: doc["displayName"],
       photoUrl: doc["photoUrl"],
+      followers: doc["followers"].toSet(),
+      following: doc["following"].toSet(),
     );
   }
 }

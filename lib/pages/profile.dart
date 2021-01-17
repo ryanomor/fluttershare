@@ -21,16 +21,22 @@ class Profile extends StatefulWidget {
 
 class _ProfileState extends State<Profile> {
   final String currUserId = currUser?.id;
-  String postView = "grid";
   int postCount = 0;
+  int followerCount = 0;
+  int followingCount = 0;
   List<Post> posts = [];
   bool isLoading = false;
+  bool isFollowing = false;
+  String postView = "grid";
 
   @override
   void initState() {
     super.initState();
 
     getProfilePosts();
+    getFollowers();
+    getFollowing();
+    checkIsFollowing();
   }
 
   getProfilePosts() async {
@@ -48,6 +54,39 @@ class _ProfileState extends State<Profile> {
       isLoading = false;
       postCount = snapshot.documents.length;
       posts = snapshot.documents.map((doc) => Post.fromDocument(doc)).toList();
+    });
+  }
+
+  getFollowers() async {
+    User viewedUser = await usersRef
+        .document(widget.profileId)
+        .get()
+        .then((doc) => User.fromDocument(doc));
+
+    setState(() {
+      followerCount = viewedUser.followers.length;
+    });
+  }
+
+  getFollowing() async {
+    User viewedUser = await usersRef
+        .document(widget.profileId)
+        .get()
+        .then((doc) => User.fromDocument(doc));
+
+    setState(() {
+      followingCount = viewedUser.following.length;
+    });
+  }
+
+  checkIsFollowing() async {
+    User viewedUser = await usersRef
+        .document(widget.profileId)
+        .get()
+        .then((doc) => User.fromDocument(doc));
+
+    setState(() {
+      isFollowing = viewedUser.followers.contains(currUserId);
     });
   }
 
@@ -94,15 +133,82 @@ class _ProfileState extends State<Profile> {
         height: 27.0,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-            color: Theme.of(context).accentColor,
-            border: Border.all(color: Theme.of(context).accentColor),
+            color: isFollowing ? Colors.white : Theme.of(context).accentColor,
+            border: Border.all(
+              color: isFollowing ? Colors.grey : Theme.of(context).accentColor,
+            ),
             borderRadius: BorderRadius.circular(5.0)),
         child: Text(
           text,
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: isFollowing ? Colors.black : Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );
+  }
+
+  handleFollow() {
+    setState(() {
+      isFollowing = true;
+      followerCount += 1;
+    });
+
+    // Make auth user follower of THAT user (update THEIR followers List)
+    usersRef.document(widget.profileId).updateData({
+      "followers": FieldValue.arrayUnion([currUserId])
+    });
+
+    // Put THAT user on YOUR following List (update your following List)
+    currUser.following.add(widget.profileId);
+    usersRef
+        .document(currUserId)
+        .updateData({"following": currUser.following.toList()});
+
+    // Add activity feed item for that user to notify about new follower (currUser)
+    activityFeedRef
+        .document(widget.profileId)
+        .collection("feedItems")
+        .document(currUserId)
+        .setData({
+      "type": "follow",
+      "ownerId": widget.profileId,
+      "userId": currUserId, // currUser.id,
+      "username": currUser.username,
+      "avatarUrl": currUser.photoUrl,
+      "timestamp": DateTime.now(),
+    });
+  }
+
+  handleUnfollow() {
+    setState(() {
+      isFollowing = false;
+      followerCount -= 1;
+    });
+
+    // remove follower
+    usersRef.document(widget.profileId).updateData({
+      "followers": FieldValue.arrayRemove([currUserId])
+    });
+
+    // remove from curr user's following List
+    currUser.following.remove(widget.profileId);
+    usersRef
+        .document(currUserId)
+        .updateData({"following": currUser.following.toList()});
+
+    // Delete activity feed item for that user
+    activityFeedRef
+        .document(widget.profileId)
+        .collection("feedItems")
+        .document(currUserId)
+        .get()
+        .then((doc) {
+      if (doc.exists) {
+        doc.reference.delete();
+      }
+    });
   }
 
   buildProfileButton() {
@@ -110,6 +216,10 @@ class _ProfileState extends State<Profile> {
 
     if (isProfileOwner) {
       return buildButton(text: "Edit Profile", function: editProfile);
+    } else if (isFollowing) {
+      return buildButton(text: "Unfollow", function: handleUnfollow);
+    } else if (!isFollowing) {
+      return buildButton(text: "Follow", function: handleFollow);
     }
     return Text("Profile Button");
   }
@@ -166,8 +276,8 @@ class _ProfileState extends State<Profile> {
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             buildCountColumn("posts", postCount),
-                            buildCountColumn("followers", 0),
-                            buildCountColumn("following", 0),
+                            buildCountColumn("followers", followerCount),
+                            buildCountColumn("following", followingCount),
                           ],
                         ),
                         Row(
