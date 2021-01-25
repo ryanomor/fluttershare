@@ -17,6 +17,7 @@ final usersRef = Firestore.instance.collection("users");
 final postsRef = Firestore.instance.collection("posts");
 final commentsRef = Firestore.instance.collection("comments");
 final activityFeedRef = Firestore.instance.collection("feed");
+final timelineRef = Firestore.instance.collection("timeline");
 User currUser;
 
 class Home extends StatefulWidget {
@@ -34,20 +35,6 @@ class _HomeState extends State<Home> {
     super.initState();
     pageController = PageController();
 
-    handleSignIn(GoogleSignInAccount account) {
-      if (account != null) {
-        print('User signed in! $account');
-        userToFsDb();
-        setState(() {
-          isAuth = true;
-        });
-      } else {
-        setState(() {
-          isAuth = false;
-        });
-      }
-    }
-
     // Detect when user is signed in
     googleSignIn.onCurrentUserChanged.listen((account) => handleSignIn(account),
         onError: (err) => print('Error signing in: $err'));
@@ -59,6 +46,20 @@ class _HomeState extends State<Home> {
         .catchError((err) => print('Error signing in: $err'));
   }
 
+  handleSignIn(GoogleSignInAccount account) async {
+    if (account != null) {
+      print('User signed in! $account');
+      await userToFsDb();
+      setState(() {
+        isAuth = true;
+      });
+    } else {
+      setState(() {
+        isAuth = false;
+      });
+    }
+  }
+
   userToFsDb() async {
     // check if user id exists in firestore users collection
     final GoogleSignInAccount user = googleSignIn.currentUser;
@@ -67,16 +68,20 @@ class _HomeState extends State<Home> {
     // if doesn't exist, navigate to create account page
     if (!userDoc.exists) {
       final username = await Navigator.push(
-          context, MaterialPageRoute(builder: (context) => CreateAccount()));
+        context,
+        MaterialPageRoute(builder: (context) => CreateAccount()),
+      );
 
       // get info from create account page to create new user in users collection
       usersRef.document(user.id).setData({
         "id": user.id,
+        "email": user.email,
         "username": username,
         "photoUrl": user.photoUrl,
-        "email": user.email,
         "displayName": user.displayName,
         "bio": "",
+        "followers": [],
+        "following": [],
         "timestamp": DateTime.now()
       });
     }
@@ -120,7 +125,7 @@ class _HomeState extends State<Home> {
     return Scaffold(
       body: PageView(
         children: <Widget>[
-          Timeline(),
+          Timeline(currentUser: currUser),
           ActivityFeed(),
           Upload(
             currentUser: currUser,

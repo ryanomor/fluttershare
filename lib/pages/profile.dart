@@ -221,7 +221,7 @@ class _ProfileState extends State<Profile> {
     } else if (!isFollowing) {
       return buildButton(text: "Follow", function: handleFollow);
     }
-    return Text("Profile Button");
+    // return Text("Profile Button");
   }
 
   buildProfileHeader() {
@@ -275,8 +275,11 @@ class _ProfileState extends State<Profile> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            buildCountColumn("posts", postCount),
-                            buildCountColumn("followers", followerCount),
+                            buildCountColumn(
+                                postCount > 1 ? "posts" : "post", postCount),
+                            buildCountColumn(
+                                followerCount == 1 ? "follower" : "followers",
+                                followerCount),
                             buildCountColumn("following", followingCount),
                           ],
                         ),
