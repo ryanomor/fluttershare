@@ -55,10 +55,6 @@ class Post extends StatefulWidget {
 }
 
 class _PostState extends State<Post> {
-  final String currentUserId = currUser?.id;
-  bool isLiked;
-  bool showHeart = false;
-
   final String postId;
   final String ownerId;
   final String username;
@@ -67,6 +63,10 @@ class _PostState extends State<Post> {
   final String mediaUrl;
   Map likes;
   int likeCount;
+
+  final String currentUserId = currUser?.id;
+  bool isLiked;
+  bool showHeart = false;
 
   _PostState({
     this.postId,
@@ -94,6 +94,8 @@ class _PostState extends State<Post> {
         }
 
         User user = User.fromDocument(snapshot.data);
+        bool isOwner = currentUserId ==
+            ownerId; // is logged in user the owner of curr post?
 
         return ListTile(
           leading: CircleAvatar(
@@ -109,13 +111,77 @@ class _PostState extends State<Post> {
             ),
           ),
           subtitle: Text(location),
-          trailing: IconButton(
-            onPressed: () => print('deleting post'),
-            icon: Icon(Icons.more_vert),
-          ),
+          trailing: isOwner
+              ? IconButton(
+                  onPressed: () => handleDelete(context),
+                  icon: Icon(Icons.more_vert),
+                )
+              : Text(''),
         );
       },
     );
+  }
+
+  handleDelete(BuildContext parentContext) {
+    return showDialog(
+      context: parentContext,
+      builder: (context) {
+        return SimpleDialog(
+          title: Text('Do you want to delete post?'),
+          children: [
+            SimpleDialogOption(
+              child: Text('Delete', style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                deletePost();
+                Navigator.pop(context);
+              },
+            ),
+            SimpleDialogOption(
+              child: Text('Cancel'),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // ownerId and currentUserId must be equal for this call to be made
+  deletePost() async {
+    postsRef
+        .document(ownerId)
+        .collection('usersPosts')
+        .document(postId)
+        .get()
+        .then((doc) {
+      if (doc.exists) doc.reference.delete();
+    });
+
+    // delete post image from storage
+    storageRef.child("post_$postId.jpg").delete();
+
+    // delete all feed notifications of post
+    QuerySnapshot activityFeedSnapshot = await activityFeedRef
+        .document(ownerId)
+        .collection('feedItems')
+        .where('postId', isEqualTo: postId)
+        .getDocuments();
+
+    activityFeedSnapshot.documents.forEach((doc) {
+      if (doc.exists) doc.reference.delete();
+    });
+
+    // the delete all comments
+    QuerySnapshot commentSnapshot = await commentsRef
+        .document(postId)
+        .collection('comments')
+        .getDocuments();
+
+    commentSnapshot.documents.forEach((doc) {
+      if (doc.exists) doc.reference.delete();
+    });
+
+    setState(() {}); // to refresh current widget
   }
 
   handleLikePost() {
